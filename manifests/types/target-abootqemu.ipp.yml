@@ -1,0 +1,23 @@
+# This is a qemu target similar to the regular "qemu" target, but using
+# an android boot partition instead of grub.
+#
+# It currently works only on aarch64, and you need to use a u-boot
+# firmware that supports aboot to boot it, which can be
+# done by passing --aboot to runvm.
+#
+version: '2'
+mpp-vars:
+  use_grub2: false
+  use_aboot: true
+  use_abootpart: true
+  use_bootpart: false
+  use_efipart: false
+  aboot_pagesize: 4096
+  aboot_kernel_offset: "0x40000000"
+  aboot_dtb_file:
+    mpp-if: arch == 'aarch64'
+    then: "../qemu.dtb"
+  extra_image_rpms:
+    - mpp-if: arch == 'aarch64'
+      then: autosig-qemu-dtb
+pipelines: []

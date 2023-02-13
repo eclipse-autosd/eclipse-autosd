@@ -1,0 +1,105 @@
+version: '2'
+mpp-vars:
+  name: eclipse-sdv
+  use_containers: true
+pipelines:
+- mpp-import-pipelines:
+    path: include/build.ipp.yml
+- name: rootfs
+  build: name:build
+  stages:
+  - type: org.osbuild.kernel-cmdline
+    options:
+      root_fs_uuid:
+        mpp-eval: rootfs_uuid
+      kernel_opts:
+        mpp-eval: ''' '' .join(kernel_opts)'
+  - type: org.osbuild.rpm
+    options:
+      gpgkeys:
+      - mpp-eval: centos_gpg_key
+      - mpp-eval: redhat_gpg_key
+      disable_dracut: true
+    inputs:
+      packages:
+        type: org.osbuild.files
+        origin: org.osbuild.source
+        mpp-depsolve:
+          architecture: $arch
+          ignore-weak-deps: true
+          module-platform-id: $distro_module_id
+          baseurl: $distro_baseurl/BaseOS/$arch/os/
+          repos:
+            mpp-join:
+            - mpp-eval: image_repos
+            - mpp-eval: extra_repos
+          packages:
+            mpp-join:
+            - mpp-eval: image_rpms
+            - mpp-eval: extra_rpms
+            - - podman
+              - podman-quadlet
+              - containernetworking-plugins
+          excludes:
+          - dracut-config-rescue
+  - type: org.osbuild.skopeo
+    inputs:
+      images:
+        type: org.osbuild.containers
+        origin: org.osbuild.source
+        mpp-resolve-images:
+          images: 
+            - source: registry.gitlab.com/centos/automotive/sample-images/ecal-sample-cpp-subscriber
+              tag: latest-f37
+              name: localhost/ecal-cpp-subscriber
+            - source: registry.gitlab.com/centos/automotive/sample-images/ecal-sample-cpp-publisher
+              tag: latest-f37
+              name: localhost/ecal-cpp-publisher
+    options:
+      destination:
+        type: containers-storage
+        storage-path: /usr/share/containers/storage
+
+  - type: org.osbuild.mkdir
+    options:
+      paths:
+        # ecal config
+        - path: /etc/ecal
+  - type: org.osbuild.copy
+    inputs:
+      # ecal.ini
+      ecal_ini:
+        type: org.osbuild.files
+        origin: org.osbuild.source
+        mpp-embed:
+          id: ecal_ini
+          path: ../files/ecal/ecal.ini
+      # quadlet 
+      quadlet_kube_esdv_pubsub:
+        type: org.osbuild.files
+        origin: org.osbuild.source
+        mpp-embed:
+          id: quadlet_kube_esdv_pubsub
+          path: ../files/quadlet/ecal-sample-pubsub.kube
+      quadlet_deployment_esdv_pubsub:
+        type: org.osbuild.files
+        origin: org.osbuild.source
+        mpp-embed:
+          id: quadlet_deployment_esdv_pubsub
+          path: ../files/quadlet/ecal-sample-pubsub.yml
+    options:
+      paths:
+        # ecal.ini
+        - from:
+            mpp-format-string: input://ecal_ini/{embedded['ecal_ini']}
+          to: tree:///etc/ecal/ecal.ini
+        # quadlet 
+        - from:
+            mpp-format-string: input://quadlet_kube_esdv_pubsub/{embedded['quadlet_kube_esdv_pubsub']}
+          to: tree:////etc/containers/systemd/ecal-sample-pubsub.kube
+        - from:
+            mpp-format-string: input://quadlet_deployment_esdv_pubsub/{embedded['quadlet_deployment_esdv_pubsub']}
+          to: tree:////etc/containers/systemd/ecal-sample-pubsub.yml
+
+- mpp-import-pipelines:
+    path: include/image.ipp.yml

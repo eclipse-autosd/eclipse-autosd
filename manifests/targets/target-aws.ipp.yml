@@ -1,0 +1,73 @@
+version: '2'
+mpp-vars:
+  extra_image_rpms:
+  - openssh-server
+  - openssh-clients
+  - sudo
+  - tuned
+  - cloud-init
+  - cloud-utils-growpart
+  - gdisk
+  - NetworkManager-cloud-setup
+  - rsync
+  - qemu-guest-agent
+  extra_build_rpms:
+  - python3-pyyaml
+  image_extra_stages:
+    mpp-join:
+      - mpp-eval: image_extra_stages
+      - - type: org.osbuild.sshd.config
+          options:
+            config:
+              PermitRootLogin:
+                mpp-eval: ssh_permit_root_login
+        - type: org.osbuild.systemd
+          options:
+            enabled_services:
+            - sshd
+            - NetworkManager
+            - nm-cloud-setup.service
+            - nm-cloud-setup.timer
+            - cloud-init
+            - cloud-init-local
+            - cloud-config
+            - cloud-final
+            - reboot.target
+            - tuned
+            default_target: multi-user.target
+        - type: org.osbuild.systemd-logind
+          options:
+            filename: 00-getty-fixes.conf
+            config:
+              Login:
+                NAutoVTs: 0
+        - type: org.osbuild.cloud-init
+          options:
+            filename: 00-cs-default-user.cfg
+            config:
+              system_info:
+                default_user:
+                  name: ec2-user
+        - type: org.osbuild.systemd.unit
+          options:
+            unit: nm-cloud-setup.service
+            dropin: 10-enable-for-ec2.conf
+            config:
+              Service:
+                Environment: NM_CLOUD_SETUP_EC2=yes
+        - type: org.osbuild.chrony
+          options:
+            servers:
+            - hostname: 169.254.169.123
+              prefer: true
+              iburst: true
+              minpoll: 4
+              maxpoll: 4
+            leapsectz: ""
+        - type: org.osbuild.keymap
+          options:
+            keymap: us
+            x11-keymap:
+              layouts:
+              - us
+pipelines: []

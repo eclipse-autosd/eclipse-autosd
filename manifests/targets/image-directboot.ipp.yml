@@ -1,0 +1,182 @@
+version: '2'
+mpp-vars:
+  kernel_osbuild_tree: kernel-tree
+  image_rpms:
+    mpp-join:
+    - mpp-eval: base_rpms
+    - mpp-eval: locals().get('extra_image_rpms', [])
+    - []
+pipelines:
+- name: kernel-tree
+  build: name:build
+  stages:
+  - type: org.osbuild.kernel-cmdline
+    options:
+      root_fs_uuid:
+        mpp-eval: rootfs_uuid
+      kernel_opts:
+        mpp-eval: ''' '' .join(kernel_opts)'
+  - type: org.osbuild.rpm
+    options:
+      gpgkeys:
+      - mpp-eval: centos_gpg_key
+      - mpp-eval: redhat_gpg_key
+      disable_dracut: true
+    inputs:
+      packages:
+        type: org.osbuild.files
+        origin: org.osbuild.source
+        mpp-depsolve:
+          architecture: $arch
+          module-platform-id: $distro_module_id
+          baseurl: $distro_baseurl/BaseOS/$arch/os/
+          repos:
+            mpp-join:
+            - mpp-eval: distro_repos
+            - - id: cs9-shim
+                baseurl: https://download.copr.fedorainfracloud.org/results/alexl/cs9-shim/fedora-35-$arch/
+          packages:
+            mpp-join:
+            - mpp-eval: base_rpms
+            - mpp-eval: boot_rpms
+            - mpp-eval: locals().get('extra_boot_rpms', [])
+            - - shim-unsigned-$efiarch
+          excludes:
+          - dracut-config-rescue
+  - type: org.osbuild.mkdir
+    options:
+      paths:
+      - path: /boot/efi/EFI/Linux
+        parents: true
+  - type: org.osbuild.copy
+    inputs:
+      bootcsv:
+        type: org.osbuild.files
+        origin: org.osbuild.source
+        mpp-embed:
+          id: directboot.csv
+          path: directboot.csv
+      extra-tree:
+        type: org.osbuild.tree
+        origin: org.osbuild.pipeline
+        references:
+        - name:extra-tree-content
+    options:
+      paths:
+        mpp-join:
+          - - from:
+                mpp-format-string: input://bootcsv/{embedded['directboot.csv']}
+              to: tree:///boot/efi/EFI/Linux/boot.csv
+          - mpp-eval: extra_tree_content
+  - type: org.osbuild.dracut
+    options:
+      kernel:
+      - mpp-eval: rpms['kernel-tree'][kernel_core_package].evra
+      add_modules:
+        mpp-eval: dracut_add_modules
+      omit_modules:
+        mpp-eval: dracut_omit_modules
+      add_drivers:
+        mpp-eval: dracut_add_drivers
+      filesystems:
+        mpp-eval: dracut_filesystems
+      install:
+        mpp-eval: dracut_install
+      extra:
+      - /boot/efi/EFI/Linux/initramfs.img
+      - --kernel-cmdline
+      - mpp-format-string: root=UUID={rootfs_uuid} {' ' .join(kernel_opts)}
+- name: image-tree
+  build: name:build
+  stages:
+    mpp-join:
+    - - type: org.osbuild.copy
+        inputs:
+          tree:
+            type: org.osbuild.tree
+            origin: org.osbuild.pipeline
+            references:
+            - name:rootfs
+          extra-tree:
+            type: org.osbuild.tree
+            origin: org.osbuild.pipeline
+            references:
+            - name:extra-tree-content
+        options:
+          paths:
+            mpp-join:
+              - - from: input://tree/
+                  to: tree:///
+              - mpp-eval: extra_tree_content
+      - type: org.osbuild.copy
+        inputs:
+          kernel:
+            type: org.osbuild.tree
+            origin: org.osbuild.pipeline
+            references:
+            - name:kernel-tree
+        options:
+          paths:
+          - from: input://kernel/lib/modules
+            to: tree:///lib/
+          - from: input://kernel/boot/efi/EFI/BOOT
+            to: tree:////boot/efi/EFI/
+          - from: input://kernel/boot/efi/EFI/Linux
+            to: tree:////boot/efi/EFI/
+      - type: org.osbuild.copy
+        inputs:
+          kernel:
+            type: org.osbuild.tree
+            origin: org.osbuild.pipeline
+            references:
+            - name:kernel-tree
+        options:
+          paths:
+          - from: input://kernel/lib/modules
+            to: tree:///lib/
+          - from: input://kernel/boot/efi/EFI/BOOT
+            to: tree:////boot/efi/EFI/
+          - from: input://kernel/boot/efi/EFI/Linux
+            to: tree:////boot/efi/EFI/
+      - mpp-if: arch == 'aarch64'
+        then:
+          type: org.osbuild.gunzip
+          inputs:
+            file:
+              type: org.osbuild.files
+              origin: org.osbuild.pipeline
+              references:
+                name:kernel-tree:
+                  file:
+                    mpp-format-string: boot/vmlinuz-{rpms['kernel-tree'][kernel_core_package].evra}
+          options:
+            path: /boot/efi/EFI/Linux/linux.efi
+        else:
+          type: org.osbuild.copy
+          inputs:
+            kernel:
+              type: org.osbuild.tree
+              origin: org.osbuild.pipeline
+              references:
+              - name:kernel-tree
+          options:
+            paths:
+            - from:
+                mpp-format-string: input://kernel/boot/vmlinuz-{rpms['kernel-tree'][kernel_core_package].evra}
+              to: tree:///boot/efi/EFI/Linux/linux.efi
+      - type: org.osbuild.users
+        options:
+          users:
+            root:
+              password:
+                mpp-eval: root_password
+              key:
+                mpp-eval: root_ssh_key
+    - mpp-eval: image_extra_stages
+    - - type: org.osbuild.fstab
+        options:
+          filesystems:
+            mpp-eval: fstab
+      - type: org.osbuild.selinux
+        options:
+          file_contexts: etc/selinux/targeted/contexts/files/file_contexts

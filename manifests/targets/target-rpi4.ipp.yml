@@ -1,0 +1,69 @@
+version: '2'
+mpp-vars:
+  extra_image_source_ostree: ostree-tree
+  extra_image_copy_ostree:
+  - from: input://extra-tree/lib/ostree-boot/efi/
+    to: mount://root/boot/efi/
+  rpi4_use_uefi: false
+  extra_image_source_directboot: rpi-direct-files
+  extra_image_copy_directboot:
+    mpp-if: not rpi4_use_uefi
+    then:
+      - from: input://extra-tree/
+        to: mount://root/boot/efi/
+    else: []
+  extra_image_rpms:
+  - pi4-firmware-blob
+  - pi_resize
+  dracut_add_drivers:
+    mpp-join:
+    - mpp-eval: dracut_add_drivers
+    - - bcm2835
+      - bcm2835-mailbox
+      - sdhci
+  partition_label: dos
+  target_repos:
+  - id: cs9-rpi4-fw
+    baseurl: https://download.copr.fedorainfracloud.org/results/alexl/cs9-rpi4-fw/centos-stream-9-aarch64/
+  rpi4_direct_cmdline_txt: console=serial0,115200 console=tty1 modprobe.blacklist=vc4
+  rpi4_direct_config_txt: |
+    kernel=EFI/Linux/linux.efi
+    initramfs EFI/Linux/initramfs.img followkernel
+    arm_64bit=1
+    enable_uart=1
+    uart_2ndstage=1
+    dtoverlay=miniuart-bt
+    display_auto_detect=1
+    dtoverlay=vc4-kms-v3d-pi4
+    max_framebuffers=2
+    disable_overscan=1
+pipelines:
+- name: rpi-direct-files
+  runner: org.osbuild.centos9
+  stages:
+  - type: org.osbuild.copy
+    inputs:
+      inlinefile:
+        type: org.osbuild.files
+        origin: org.osbuild.source
+        mpp-embed:
+          id: config.txt
+          text: $rpi4_direct_config_txt
+    options:
+      paths:
+      - from:
+          mpp-format-string: input://inlinefile/{embedded['config.txt']}
+        to: tree:///config.txt
+  - type: org.osbuild.copy
+    inputs:
+      inlinefile:
+        type: org.osbuild.files
+        origin: org.osbuild.source
+        mpp-embed:
+          id: cmdline.txt
+          text: $rpi4_direct_cmdline_txt
+    options:
+      paths:
+      - from:
+          mpp-format-string: input://inlinefile/{embedded['cmdline.txt']}
+        to: tree:///cmdline.txt
