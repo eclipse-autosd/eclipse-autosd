@@ -55,6 +55,15 @@ pipelines:
             - source: registry.gitlab.com/centos/automotive/sample-images/ecal-sample-cpp-publisher
               tag: latest-f37
               name: localhost/ecal-cpp-publisher
+            - source: quay.io/fedora/chariott
+              tag: latest
+              name: localhost/chariott
+            - source: quay.io/ibrandao/kv-app
+              tag: latest
+              name: localhost/kv-app
+            - source: quay.io/ibrandao/grpcurl
+              tag: latest
+              name: localhost/grpcurl
     options:
       destination:
         type: containers-storage
