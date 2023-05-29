@@ -145,6 +145,24 @@ pipelines:
         - from:
             mpp-format-string: input://quadlet_deployment_esdv_pubsub/{embedded['quadlet_deployment_esdv_pubsub']}
           to: tree:////etc/containers/systemd/ecal-sample-pubsub.yml
+        - from:
+            mpp-format-string: input://quadlet_kube_chariottsdv/{embedded['quadlet_kube_chariottsdv']}
+          to: tree:////etc/containers/systemd/chariott-sample.kube
+        - from:
+            mpp-format-string: input://quadlet_deployment_chariottsdv/{embedded['quadlet_deployment_chariottsdv']}
+          to: tree:////etc/containers/systemd/chariott-sample.yml
+        - from:
+            mpp-format-string: input://quadlet_kube_kvappsdv/{embedded['quadlet_kube_kvappsdv']}
+          to: tree:////etc/containers/systemd/kv-app-sample.kube
+        - from:
+            mpp-format-string: input://quadlet_deployment_kvappsdv/{embedded['quadlet_deployment_kvappsdv']}
+          to: tree:////etc/containers/systemd/kv-app-sample.yml
+        - from:
+            mpp-format-string: input://quadlet_kube_grpcurl/{embedded['quadlet_kube_grpcurl']}
+          to: tree:////etc/containers/systemd/grpcurl-sample.kube
+        - from:
+            mpp-format-string: input://quadlet_deployment_grpcurl/{embedded['quadlet_deployment_grpcurl']}
+          to: tree:////etc/containers/systemd/grpcurl-sample.yml
 
 - mpp-import-pipelines:
     path: include/image.ipp.yml
