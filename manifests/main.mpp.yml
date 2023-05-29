@@ -96,6 +96,42 @@ pipelines:
         mpp-embed:
           id: quadlet_deployment_esdv_pubsub
           path: ../files/quadlet/ecal-sample-pubsub.yml
+      quadlet_kube_chariottsdv:
+        type: org.osbuild.files
+        origin: org.osbuild.source
+        mpp-embed:
+          id: quadlet_kube_chariottsdv
+          path: ../files/quadlet/chariott-sample.kube
+      quadlet_deployment_chariottsdv:
+        type: org.osbuild.files
+        origin: org.osbuild.source
+        mpp-embed:
+          id: quadlet_deployment_chariottsdv
+          path: ../files/quadlet/chariott-sample.yml
+      quadlet_kube_kvappsdv:
+        type: org.osbuild.files
+        origin: org.osbuild.source
+        mpp-embed:
+          id: quadlet_kube_kvappsdv
+          path: ../files/quadlet/kv-app-sample.kube
+      quadlet_deployment_kvappsdv:
+        type: org.osbuild.files
+        origin: org.osbuild.source
+        mpp-embed:
+          id: quadlet_deployment_kvappsdv
+          path: ../files/quadlet/kv-app-sample.yml
+      quadlet_kube_grpcurl:
+        type: org.osbuild.files
+        origin: org.osbuild.source
+        mpp-embed:
+          id: quadlet_kube_grpcurl
+          path: ../files/quadlet/grpcurl-sample.kube
+      quadlet_deployment_grpcurl:
+        type: org.osbuild.files
+        origin: org.osbuild.source
+        mpp-embed:
+          id: quadlet_deployment_grpcurl
+          path: ../files/quadlet/grpcurl-sample.yml
     options:
       paths:
         # ecal.ini
