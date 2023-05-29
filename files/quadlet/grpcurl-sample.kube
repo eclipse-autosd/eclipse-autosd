@@ -1,0 +1,5 @@
+[Kube]
+Yaml=grpcurl-sample.yml
+
+[Install]
+WantedBy=default.target

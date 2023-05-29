@@ -1,0 +1,32 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kv-app
+  name: rust-kv-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kv-app
+  template:
+    metadata:
+      labels:
+        app: kv-app
+    spec:
+      containers:
+      - image: quay.io/ibrandao/kv-app:latest
+        name: kv-app
+        resources: 
+          limits:
+            cpu: "1"
+            memory: "512Mi"
+          requests:
+            cpu: "200m"
+            memory: "128Mi"
+        ports:
+        - name: default
+          protocol: "TCP"
+          containerPort: 50064
+

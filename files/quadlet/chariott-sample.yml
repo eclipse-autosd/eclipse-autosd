@@ -1,0 +1,31 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: chariott
+  name: rust-chariott
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chariott
+  template:
+    metadata:
+      labels:
+        app: chariott
+    spec:
+      containers:
+      - image: quay.io/fedora/chariott:latest
+        name: chariott
+        resources: 
+          limits:
+            cpu: "1"
+            memory: "512Mi"
+          requests:
+            cpu: "200m"
+            memory: "128Mi"
+        ports:
+        - name: default
+          protocol: "TCP"
+          containerPort: 4243

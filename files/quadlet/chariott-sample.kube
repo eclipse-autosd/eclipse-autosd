@@ -1,0 +1,5 @@
+[Kube]
+Yaml=chariott-sample.yml
+
+[Install]
+WantedBy=default.target
