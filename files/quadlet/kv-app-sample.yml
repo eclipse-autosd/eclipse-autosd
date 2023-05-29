@@ -16,7 +16,7 @@ spec:
         app: kv-app
     spec:
       containers:
-      - image: quay.io/ibrandao/kv-app:latest
+      - image: localhost/kv-app:latest
         name: kv-app
         resources: 
           limits:

@@ -16,7 +16,7 @@ spec:
         app: chariott
     spec:
       containers:
-      - image: quay.io/fedora/chariott:latest
+      - image: localhost/chariott:latest
         name: chariott
         resources: 
           limits:

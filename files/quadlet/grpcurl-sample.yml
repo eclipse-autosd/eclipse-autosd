@@ -16,7 +16,7 @@ spec:
         app: grpcurl
     spec:
       containers:
-      - image: quay.io/ibrandao/grpcurl:latest
+      - image: localhost/grpcurl:latest
         name: grpcurl
         resources: 
           limits:
