@@ -15,12 +15,13 @@ spec:
       labels:
         app: kv-app
     spec:
+      HostNetwork: true
       containers:
       - image: localhost/kv-app:latest
         name: kv-app
         env:
           - name: CHARIOTT_URL
-            value: "http://rust-chariott-pod:4243"
+            value: "http://0.0.0.0:4243"
         resources: 
           limits:
             cpu: "1"
@@ -28,8 +29,8 @@ spec:
           requests:
             cpu: "200m"
             memory: "128Mi"
-        ports:
-        - name: default
-          protocol: "TCP"
-          containerPort: 50064
+            #ports:
+            #- name: default
+            #  protocol: "TCP"
+            #  containerPort: 50064
 

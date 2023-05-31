@@ -40,6 +40,7 @@ pipelines:
             - - podman
               - podman-quadlet
               - containernetworking-plugins
+              - aardvark-dns
           excludes:
           - dracut-config-rescue
   - type: org.osbuild.skopeo
@@ -139,12 +140,12 @@ pipelines:
             mpp-format-string: input://ecal_ini/{embedded['ecal_ini']}
           to: tree:///etc/ecal/ecal.ini
         # quadlet 
-        - from:
-            mpp-format-string: input://quadlet_kube_esdv_pubsub/{embedded['quadlet_kube_esdv_pubsub']}
-          to: tree:////etc/containers/systemd/ecal-sample-pubsub.kube
-        - from:
-            mpp-format-string: input://quadlet_deployment_esdv_pubsub/{embedded['quadlet_deployment_esdv_pubsub']}
-          to: tree:////etc/containers/systemd/ecal-sample-pubsub.yml
+        #- from:
+        #    mpp-format-string: input://quadlet_kube_esdv_pubsub/{embedded['quadlet_kube_esdv_pubsub']}
+        #  to: tree:////etc/containers/systemd/ecal-sample-pubsub.kube
+        #- from:
+        #    mpp-format-string: input://quadlet_deployment_esdv_pubsub/{embedded['quadlet_deployment_esdv_pubsub']}
+        #  to: tree:////etc/containers/systemd/ecal-sample-pubsub.yml
         - from:
             mpp-format-string: input://quadlet_kube_chariottsdv/{embedded['quadlet_kube_chariottsdv']}
           to: tree:////etc/containers/systemd/chariott-sample.kube

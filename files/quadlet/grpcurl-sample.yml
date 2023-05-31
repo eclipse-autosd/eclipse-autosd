@@ -15,6 +15,7 @@ spec:
       labels:
         app: grpcurl
     spec:
+      HostNetwork: true
       containers:
       - image: localhost/grpcurl:latest
         name: grpcurl
