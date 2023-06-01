@@ -30,7 +30,7 @@ Build the image using `osbuild`:
 ```sh
 sudo osbuild \
 --store outputs/osbuild_store \
---output-directory output \
+--output-directory outputs \
 --export qcow2 \
 outputs/main.json
 ```
