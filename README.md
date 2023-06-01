@@ -1,4 +1,4 @@
-# autosd-image-soafee
+# autosd-image-eclipse-sdv
 
 An AutoSD image with Eclipse SDV components.
 
@@ -6,10 +6,10 @@ An AutoSD image with Eclipse SDV components.
 
 ### Building
 
-Create a `_build` and `outputs` directory
+Create an `outputs` directory
 
 ```sh
-mkdir -p _build outputs
+mkdir -p outputs
 ```
 
 Generate a osbuild json file using `osbuild-mpp`:
@@ -22,17 +22,17 @@ osbuild-mpp \
 -D distro_name='"cs9"' \
 -D target='"qemu"' \
 manifests/main.mpp.yml \
-_build/main.json
+outputs/main.json
 ```
 
 Build the image using `osbuild`:
 
 ```sh
 sudo osbuild \
---store _build/osbuild_store \
+--store outputs/osbuild_store \
 --output-directory output \
 --export qcow2 \
-_build/main.json
+outputs/main.json
 ```
 
 ## Running
