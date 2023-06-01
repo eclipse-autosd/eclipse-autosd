@@ -44,15 +44,15 @@ mpp-define-image:
       uuid: $rootpart_uuid
 pipelines:
 - mpp-import-pipelines:
-    path: distro/$distro_name.ipp.yml
+    path: distros/$distro_name.ipp.yml
 - mpp-import-pipelines:
-    path: targets/defaults.ipp.yml
+    path: vars/defaults.ipp.yml
 - mpp-import-pipelines:
-    path: targets/target-$target.ipp.yml
+    path: targets/$target.ipp.yml
 - mpp-import-pipelines:
-    path: targets/arch-$arch.ipp.yml
+    path: archs/$arch.ipp.yml
 - mpp-import-pipelines:
-    path: targets/computed-vars.ipp.yml # After including all snippets that may change the defaults, compute derived things
+    path: vars/computed-vars.ipp.yml # After including all snippets that may change the defaults, compute derived things
 - name: build
   runner: org.osbuild.centos9
   stages:

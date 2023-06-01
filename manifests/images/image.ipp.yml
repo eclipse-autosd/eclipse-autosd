@@ -95,7 +95,7 @@ pipelines:
           mpp-format-string: input://inlinefile/{embedded['containers.conf']}
         to: tree:///containers.conf
 - mpp-import-pipelines:
-    path: types/image-$image_type.ipp.yml
+    path: images/$image_type.ipp.yml
 - name: image
   build: name:build
   stages:

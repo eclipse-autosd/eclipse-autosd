@@ -4,7 +4,7 @@ mpp-vars:
   use_containers: true
 pipelines:
 - mpp-import-pipelines:
-    path: include/build.ipp.yml
+    path: builds/build.ipp.yml
 - name: rootfs
   build: name:build
   stages:
@@ -166,4 +166,4 @@ pipelines:
           to: tree:////etc/containers/systemd/grpcurl-sample.yml
 
 - mpp-import-pipelines:
-    path: include/image.ipp.yml
+    path: images/image.ipp.yml
