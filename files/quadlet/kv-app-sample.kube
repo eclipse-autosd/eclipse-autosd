@@ -1,6 +1,0 @@
-[Kube]
-Yaml=kv-app-sample.yml
-
-[Install]
-Requires=chariott-sample.service
-WantedBy=default.target

@@ -1,0 +1,42 @@
+SHELL := /bin/bash
+TOOLS_DIR := ./tools
+OUTPUT_DIR := ./outputs
+AIB_SH_URL := https://gitlab.com/CentOS/automotive/src/automotive-image-builder/-/raw/main/auto-image-builder.sh?ref_type=heads
+AIB_DISTRO := autosd9
+AIB_MODE := package
+AIB_TARGET = qemu
+AIB_EXPORT = qcow2
+AIB_IMAGE := image
+AIB_OUTPUT := disk.qcow2
+
+prepare/tools:
+	mkdir -p ${TOOLS_DIR}
+	curl -L -o ${TOOLS_DIR}/auto-image-builder.sh ${AIB_SH_URL}
+	chmod +x ${TOOLS_DIR}/auto-image-builder.sh
+
+prepare/output:
+	mkdir -p ${OUTPUT_DIR}
+
+prepare: prepare/tools prepare/output
+
+.PHONY: build
+build:
+	sudo ${TOOLS_DIR}/auto-image-builder.sh \
+		build \
+		--define-file aib/vars.yml  \
+		--distro ${AIB_DISTRO} \
+		--mode ${AIB_MODE} \
+		--target ${AIB_TARGET} \
+		--export ${AIB_EXPORT} \
+		aib/${AIB_IMAGE}.aib.yml ${OUTPUT_DIR}/${AIB_OUTPUT}
+	sudo chown $(shell logname) ${OUTPUT_DIR}/${AIB_OUTPUT}
+
+.PHONY: run/qemu
+run/qemu:
+	automotive-image-runner --nographic ${OUTPUT_DIR}/${AIB_OUTPUT}
+
+.PHONY: clean
+clean:
+	rm -rf ${OUTPUT_DIR}
+	rm -rf ${TOOLS_DIR}
+	sudo rm -rf _build/

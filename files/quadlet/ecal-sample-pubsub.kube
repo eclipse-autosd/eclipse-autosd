@@ -1,5 +1,0 @@
-[Kube]
-Yaml=ecal-sample-pubsub.yml
-
-[Install]
-WantedBy=default.target

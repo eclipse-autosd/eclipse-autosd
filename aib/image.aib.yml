@@ -1,0 +1,52 @@
+name: esdv
+
+content:
+  enable_repos:
+    - devel
+  repos: []
+  rpms:
+    - openssh-server
+    - podman
+    - bluechi-ctl
+    - bluechi-is-online
+    - hostname
+    - crun
+    - fuse-overlayfs
+    - dnf
+
+qm:
+  memory_limit:
+    max: infinity
+    high: infinity
+  content:
+    enable_repos:
+      - debug
+    repos: []
+    rpms:
+      - git
+
+image:
+  hostname: esdv-main-compute
+  selinux_booleans:
+    domain_can_mmap_files: true
+  image_size: 4 GiB
+  partitions:
+    boot:
+      size: 300 MiB
+    var:
+      relative_size: 0.3
+
+network:
+  static: {}
+
+auth:
+  root_password: $6$xoLqEUz0cGGJRx01$H3H/bFm0myJPULNMtbSsOFd/2BnHqHkMD92Sfxd.EKM9hXTWSmELG8cf205l6dktomuTcgKGGtGDgtvHVXSWU.
+  sshd_config:
+    PasswordAuthentication: true
+    PermitRootLogin: true
+  groups:
+    guest:
+      gid: 2000
+
+kernel:
+  debug_logging: true

@@ -1,38 +1,21 @@
 # autosd-image-eclipse-sdv
 
-An AutoSD image with Eclipse SDV components.
+AutoSD image manifests to run EclipeSDV projects.
 
 ## Geting Started
 
 ### Building
 
-Create an `outputs` directory
+Prepare scripts and local directories:
 
 ```sh
-mkdir -p outputs
+make prepare
 ```
 
-Generate a osbuild json file using `osbuild-mpp`:
+Build an image (defaults to qemu target) by running (requires sudo or needs to be run as root):
 
 ```sh
-osbuild-mpp \
--I manifests/ \
--D image_type='"regular"' \
--D arch='"x86_64"' \
--D distro_name='"cs9"' \
--D target='"qemu"' \
-manifests/main.mpp.yml \
-outputs/main.json
-```
-
-Build the image using `osbuild`:
-
-```sh
-sudo osbuild \
---store outputs/osbuild_store \
---output-directory outputs \
---export qcow2 \
-outputs/main.json
+make build
 ```
 
 ## Running
@@ -40,7 +23,7 @@ outputs/main.json
 Run the image using qemu:
 
 ```
-sudo ./scripts/runvm outputs/qcow2/disk.qcow2
+make run/qemu
 ```
 
 Login using `root`/`password`.
