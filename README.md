@@ -1,6 +1,11 @@
 # autosd-image-eclipse-sdv
 
-AutoSD image manifests to run EclipeSDV projects.
+AutoSD image manifests to run EclipeSDV projects and blueprints.
+
+This branch contains the base image definition to be used and extended when running Eclipse SDV blueprints.
+
+Specialized branches are provided per blueprint, so, a "eclipse-sdv-blueprint/service-to-signal" branch has all the code needed
+to run that blueprint.
 
 ## Geting Started
 

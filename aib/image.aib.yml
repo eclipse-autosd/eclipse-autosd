@@ -13,6 +13,25 @@ content:
     - crun
     - fuse-overlayfs
     - dnf
+  container_images:
+    - source: ghcr.io/rust-cross/rust-musl-cross
+      tag: x86_64-musl
+      name: ghcr.io/rust-cross/rust-musl-cross:x86_64-musl
+  systemd:
+    enabled_services:
+      - esdv-blueprint-mount.service
+  chmod_files:
+    # esdv-check-blueprint-vol
+    - path: /usr/local/bin/esdv-check-blueprint-vol
+      mode: "0755"
+      recursive: false
+  add_files:
+    # esdv-check-blueprint-vol
+    - source_path: ../files/usr/local/bin/esdv-check-blueprint-vol
+      path: /usr/local/bin/esdv-check-blueprint-vol
+    # esdv-blueprint-mount.service
+    - source_path: ../files/etc/systemd/system/esdv-blueprint-mount.service
+      path: /etc/systemd/system/esdv-blueprint-mount.service
 
 qm:
   memory_limit:
@@ -29,12 +48,10 @@ image:
   hostname: esdv-main-compute
   selinux_booleans:
     domain_can_mmap_files: true
-  image_size: 4 GiB
+  image_size: 10 GiB
   partitions:
     boot:
       size: 300 MiB
-    var:
-      relative_size: 0.3
 
 network:
   static: {}

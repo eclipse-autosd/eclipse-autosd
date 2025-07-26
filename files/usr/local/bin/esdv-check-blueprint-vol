@@ -1,0 +1,16 @@
+#!/bin/bash
+
+VIRTIOFS_NAME=host
+MOUNT_PATH=/tmp/esdv-shared-test
+
+mkdir -p ${MOUNT_PATH}
+mount -t virtiofs ${VIRTIOFS_NAME} ${MOUNT_PATH} >/dev/null 2>&1
+MOUNT_RC="$?"
+
+if [ "${MOUNT_RC}" -eq 0 ]; then
+    umount -l ${MOUNT_PATH}
+fi
+
+rmdir ${MOUNT_PATH}
+
+exit ${MOUNT_RC}
