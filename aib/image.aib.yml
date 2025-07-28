@@ -32,6 +32,9 @@ content:
     # esdv-blueprint-mount.service
     - source_path: ../files/etc/systemd/system/esdv-blueprint-mount.service
       path: /etc/systemd/system/esdv-blueprint-mount.service
+    # esdv.network
+    - source_path: ../files/etc/containers/systemd/esdv.network
+      path: /etc/containers/systemd/esdv.network
 
 qm:
   memory_limit:
@@ -64,6 +67,3 @@ auth:
   groups:
     guest:
       gid: 2000
-
-kernel:
-  debug_logging: true
