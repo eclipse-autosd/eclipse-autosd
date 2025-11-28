@@ -47,4 +47,4 @@ Login using `root`/`password`.
 
 ## License
 
-[MIT](./LICENSE)
+[Apache-2.0](./LICENSE)
