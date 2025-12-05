@@ -33,7 +33,7 @@ prepare/output:
 prepare: prepare/tools prepare/output
 
 .PHONY: build
-build: prepare/output
+build: prepare
 	sudo ${TOOLS_DIR}/auto-image-builder.sh \
 		build \
 		--define-file aib/vars.yml  \
