@@ -1,0 +1,36 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature Request] ..."
+labels: ["enhancement"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the main idea, requrement or use-case.
+
+  - type: textarea
+    id: blueprint
+    attributes:
+      label: Blueprint Support?
+      description: Insert blueprint information if this request is about supporting a blueprint
+    validations:
+      required: false
+
+  - type: textarea
+    id: tooling_improvements
+    attributes:
+      label: Tooling or CI/CD Pipelines
+      description: Is this related to tooling or CI/CD pipeliens improvements?
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Information
+      description: Add any additonal information you want, links, screenshots, etc 
+    validations:
+      required: false
+

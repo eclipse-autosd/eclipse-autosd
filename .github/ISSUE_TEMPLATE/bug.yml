@@ -1,0 +1,54 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug] ..."
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Issue Description
+      description: Describe the issue/error you are experiencing
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproducer
+    attributes:
+      label: How to Reproduce the Issue
+      description: Please descriibe/list the steps to reproduce the issue
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_results
+    attributes:
+      label: Expected Results
+      description: Please explain the results you are expecting
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_results
+    attributes:
+      label: Actual Results
+      description: Please describe the results you got.
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, bare metal, container, VM, etc (include versions if possible).
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_info
+    attributes:
+      label: Additional Info
+      description: Add any additional relevant information such as log files, screenshots, etc.
+    validations:
+      required: false
