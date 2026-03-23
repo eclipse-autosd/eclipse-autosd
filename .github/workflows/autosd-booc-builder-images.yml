@@ -1,0 +1,139 @@
+# *******************************************************************************
+# Copyright (c) 2025 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+name: "AutoSD: Bootc Builder Images"
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/autosd-booc-builder-images.yml
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-builder:
+    strategy:
+      matrix:
+        platform: [x86_64, aarch64]
+        include:
+          - platform: x86_64
+            runner: ubuntu-24.04
+            oci_arch: amd64
+          - platform: aarch64
+            runner: ubuntu-24.04-arm
+            oci_arch: arm64
+    runs-on: ${{ matrix.runner }}
+    env:
+      AIB_LOCAL_CONTAINER_STORAGE: ${{ github.workspace }}/_build/containers-storage
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Base Dependencies
+        run: |
+          sudo apt update -y
+          sudo apt install -y podman tree
+      - name: Podman Info
+        run: podman info
+      - name: Install AIB container script
+        run: |
+          wget -O auto-image-builder.sh \
+          https://gitlab.com/CentOS/automotive/src/automotive-image-builder/-/raw/main/auto-image-builder.sh?ref_type=heads
+          chmod +x auto-image-builder.sh
+      - name: Prepare Build
+        run: |
+          mkdir -p $PWD/_build/{containers-storage,outputs}
+      - name: Build Bootc Builder
+        run: |
+          sudo -E bash auto-image-builder.sh build-builder \
+          --distro autosd10-sig \
+          --oci-archive _build/outputs/eclipse-autosd-builder-${{ matrix.oci_arch }}.oci
+      - name: Store Container Builder Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: eclipse-autosd-builder-${{ matrix.oci_arch }}.oci
+          path: _build/outputs/eclipse-autosd-builder-${{ matrix.oci_arch }}.oci
+  
+  publish-builder:
+    # See: https://github.com/actions/runner-images/issues/10443
+    runs-on: ubuntu-22.04
+    needs: build-builder
+    permissions:
+        packages: write
+    env:
+      OCI_REG: ghcr.io
+      OCI_ORG: ${{ github.repository }}
+    steps:
+      - name: Prepare
+        run: mkdir -p outputs
+ 
+      - name: Install System Dependencies
+        run: |
+          sudo apt update -y
+          sudo apt install -y podman tree
+ 
+      - name: Download Container Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: outputs
+          merge-multiple: true
+ 
+      - name: Inspect Current Directory
+        run: tree .
+ 
+      - name: Tag Container Images
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            tag_pr="pr${{ github.event.pull_request.number }}"
+          fi
+
+          podman manifest create eclipse-autosd-builder:latest
+
+          for oci_file in *.oci; do 
+            if [[ "${oci_file}" =~ eclipse-autosd-builder-(amd64|arm64)\.oci ]]; then
+              oci_version="${tag_pr:-latest}"
+              oci_arch="${BASH_REMATCH[1]}"
+
+              echo "From: ${oci_file}"
+              echo "To: ${OCI_REG}/${OCI_ORG}/eclipse-autosd-builder:${oci_version}-${oci_arch}"
+
+              skopeo copy \
+              oci-archive:${oci_file} \
+              containers-storage:${OCI_REG}/${OCI_ORG}/eclipse-autosd-builder:${oci_version}-${oci_arch}
+
+              podman manifest add  eclipse-autosd-builder:latest \
+              ${OCI_REG}/${OCI_ORG}/eclipse-autosd-builder:${oci_version}-${oci_arch}
+
+              echo "---"
+            fi
+          done
+
+          podman images
+        working-directory: outputs
+
+      - name: Push Container Images
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            tag_pr="pr${{ github.event.pull_request.number }}"
+          fi
+
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
+          
+          podman manifest push --all \
+          eclipse-autosd-builder:latest \
+          ${OCI_REG}/${OCI_ORG}/eclipse-autosd-builder:${tag_pr:-latest}
