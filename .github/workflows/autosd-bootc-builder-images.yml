@@ -118,15 +118,19 @@ jobs:
               oci-archive:${oci_file} \
               containers-storage:${OCI_REG}/${OCI_ORG}/eclipse-autosd-builder:${oci_version}-${oci_arch}
 
-              podman manifest add  eclipse-autosd-builder:latest \
-              ${OCI_REG}/${OCI_ORG}/eclipse-autosd-builder:${oci_version}-${oci_arch}
+              podman manifest add eclipse-autosd-builder:latest \
+              containers-storage:${OCI_REG}/${OCI_ORG}/eclipse-autosd-builder:${oci_version}-${oci_arch}
 
               echo "---"
             fi
           done
-
-          podman images
         working-directory: outputs
+
+      - name: Check Imported Images
+        run: |
+          echo "---"
+          podman images
+          echo "---
 
       - name: Push Container Images
         run: |
