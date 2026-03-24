@@ -74,7 +74,9 @@ jobs:
     runs-on: ubuntu-22.04
     needs: build-builder
     permissions:
-        packages: write
+      contents: read
+      packages: write
+      id-token: write
     env:
       OCI_REG: ghcr.io
       OCI_ORG: ${{ github.repository_owner }}
