@@ -118,7 +118,7 @@ jobs:
               oci-archive:${oci_file} \
               containers-storage:${OCI_REG}/${OCI_ORG}/eclipse-autosd-builder:${oci_version}-${oci_arch}
 
-              MANIFEST_IMGS+=("--ammend ${OCI_REG}/${OCI_ORG}/eclipse-autosd-builder:${oci_version}-${oci_arch}")
+              MANIFEST_IMGS+=("--amend ${OCI_REG}/${OCI_ORG}/eclipse-autosd-builder:${oci_version}-${oci_arch}")
 
               echo "---"
             fi
