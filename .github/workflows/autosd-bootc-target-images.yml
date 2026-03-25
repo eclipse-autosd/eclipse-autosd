@@ -82,6 +82,7 @@ jobs:
   publish-target-images:
     # See: https://github.com/actions/runner-images/issues/10443
     runs-on: ubuntu-22.04
+    if: github.event_name != 'pull_request'
     needs: build-target-image
     permissions:
       contents: read
