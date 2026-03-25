@@ -1,0 +1,167 @@
+# *******************************************************************************
+# Copyright (c) 2025 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+name: "AutoSD: Bootc Target Images"
+
+on:
+  schedule:
+    # 04:00 UTC every Monday
+    - cron: "0 4 * * 1"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/autosd-bootc-target-images.yml
+  workflow_dispatch:
+
+jobs:
+  build-target-image:
+    strategy:
+      matrix:
+        platform: [qemu-amd64, qemu-arm64, rpi4-arm64]
+        include:
+          - platform: qemu-amd64
+            runner: ubuntu-24.04
+            oci_arch: amd64
+            aib_target: qemu
+          - platform: qemu-arm64
+            runner: ubuntu-24.04-arm
+            oci_arch: arm64
+            aib_target: qemu
+          - platform: rpi4-arm64
+            runner: ubuntu-24.04-arm
+            oci_arch: arm64
+            aib_target: rpi4
+
+    runs-on: ${{ matrix.runner }}
+    env:
+      AIB_BUILD_CONTAINER_IMAGE: ghcr.io/eclipse-autosd/eclipse-autosd-builder:latest
+      AIB_LOCAL_CONTAINER_STORAGE: ${{ github.workspace }}/_build/containers-storage
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Base Dependencies
+        run: |
+          sudo apt update -y
+          sudo apt install -y podman tree
+      - name: Podman Info
+        run: podman info
+      - name: Install AIB container script
+        run: |
+          wget -O auto-image-builder.sh \
+          https://gitlab.com/CentOS/automotive/src/automotive-image-builder/-/raw/main/auto-image-builder.sh?ref_type=heads
+          chmod +x auto-image-builder.sh
+      - name: Prepare Build
+        run: |
+          mkdir -p $PWD/_build/{containers-storage,outputs}
+      - name: Build Bootc Target Image
+        run: |
+          sudo -E bash ./auto-image-builder.sh build \
+          --distro autosd10-sig \
+          --build-container ${AIB_BUILD_CONTAINER_IMAGE} \
+          --target ${{ matrix.aib_target }} \
+          --define-file aib/vars.yml \
+          --define-file aib/vars-devel.yml \
+          --oci-archive \
+          aib/image.aib.yml \
+          _build/outputs/eclipse-autosd-bootc-${{ matrix.aib_target }}-${{ matrix.oci_arch }}.oci
+      - name: Store Container Builder Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: eclipse-autosd-bootc-${{ matrix.aib_target }}-${{ matrix.oci_arch }}.oci
+          path: _build/outputs/eclipse-autosd-bootc-${{ matrix.aib_target }}-${{ matrix.oci_arch }}.oci
+  
+  publish-target-images:
+    # See: https://github.com/actions/runner-images/issues/10443
+    runs-on: ubuntu-22.04
+    needs: build-target-image
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    env:
+      OCI_REG: ghcr.io
+      OCI_ORG: ${{ github.repository_owner }}
+    steps:
+      - name: Prepare
+        run: mkdir -p outputs
+ 
+      - name: Install System Dependencies
+        run: |
+          sudo apt update -y
+          sudo apt install -y podman tree
+ 
+      - name: Download Container Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: outputs
+          merge-multiple: true
+ 
+      - name: Inspect Current Directory
+        run: tree .
+ 
+      - name: Tag Container Images
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            tag_pr="pr${{ github.event.pull_request.number }}"
+          fi
+
+          podman manifest create eclipse-autosd-bootc-qemu:latest
+          podman manifest create eclipse-autosd-bootc-rpi4:latest
+
+          for oci_file in *.oci; do 
+            if [[ "${oci_file}" =~ eclipse-autosd-bootc-(qemu|rpi4)-(amd64|arm64)\.oci ]]; then
+              oci_version="${tag_pr:-latest}"
+              oci_target="${BASH_REMATCH[1]}"
+              oci_arch="${BASH_REMATCH[2]}"
+              oci_image="${OCI_REG}/${OCI_ORG}/eclipse-autosd-bootc-${oci_target}:${oci_version}-${oci_arch}"
+
+              echo "From: ${oci_file}"
+              echo "To: ${oci_image}"
+
+              skopeo copy \
+              oci-archive:${oci_file} \
+              containers-storage:${oci_image}
+
+              podman manifest add eclipse-autosd-bootc-${oci_target}:latest \
+              containers-storage:${oci_image}
+
+              echo "---"
+            fi
+          done
+        working-directory: outputs
+
+      - name: Check Imported Images
+        run: |
+          podman images
+          
+          aib_targets=("qemu" "rpi4")
+          for aib_target in ${aib_targets[@]}; do
+            manifest_name="eclipse-autosd-bootc-${aib_target}"
+            
+            echo "---${manifest_name}---"
+            podman manifest inspect ${manifest_name}:latest
+          done
+
+      - name: Push Container Images
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            tag_pr="pr${{ github.event.pull_request.number }}"
+          fi
+
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
+          
+          aib_targets=("qemu" "rpi4")
+          for aib_target in ${aib_targets[@]}; do
+            podman manifest push --all \
+            eclipse-autosd-bootc-${aib_target}:latest \
+            docker://${OCI_REG}/${OCI_ORG}/eclipse-autosd-bootc-${aib_target}:${tag_pr:-latest}
+          done
