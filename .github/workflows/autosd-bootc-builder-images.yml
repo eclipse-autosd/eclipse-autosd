@@ -104,7 +104,7 @@ jobs:
             tag_pr="pr${{ github.event.pull_request.number }}"
           fi
 
-          MANIFEST_IMGS=()
+           podman manifest create eclipse-autosd-builder:latest
 
           for oci_file in *.oci; do 
             if [[ "${oci_file}" =~ eclipse-autosd-builder-(amd64|arm64)\.oci ]]; then
@@ -118,18 +118,19 @@ jobs:
               oci-archive:${oci_file} \
               containers-storage:${OCI_REG}/${OCI_ORG}/eclipse-autosd-builder:${oci_version}-${oci_arch}
 
-              MANIFEST_IMGS+=("--amend ${OCI_REG}/${OCI_ORG}/eclipse-autosd-builder:${oci_version}-${oci_arch}")
+              podman manifest add  eclipse-autosd-builder:latest \
+              containers-storage:${OCI_REG}/${OCI_ORG}/eclipse-autosd-builder:${oci_version}-${oci_arch}
 
               echo "---"
             fi
           done
-
-          podman manifest create "${MANIFEST_IMGS[*]}" eclipse-autosd-builder:latest
         working-directory: outputs
 
       - name: Check Imported Images
         run: |
           podman images
+          echo "---"
+          podman manifest inspect eclipse-autosd-builder:latest
 
       - name: Push Container Images
         run: |
