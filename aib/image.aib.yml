@@ -64,7 +64,7 @@ qm:
       - debug
     rpms:
       - git
-      - bluechi-agent 
+      - bluechi-agent
     add_files:
       # bluechi files
       - path: /etc/bluechi/agent.conf.d/0-qm.conf
