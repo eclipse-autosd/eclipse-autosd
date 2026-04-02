@@ -61,7 +61,7 @@ jobs:
       - name: Build Bootc Builder
         run: |
           sudo -E bash auto-image-builder.sh build-builder \
-          --distro autosd10-sig \
+          --distro autosd10 \
           --oci-archive _build/outputs/eclipse-autosd-builder-${{ matrix.oci_arch }}.oci
       - name: Store Container Builder Image
         uses: actions/upload-artifact@v4
@@ -73,6 +73,7 @@ jobs:
     # See: https://github.com/actions/runner-images/issues/10443
     runs-on: ubuntu-22.04
     needs: build-builder
+    if: github.event_name != 'pull_request'
     permissions:
       contents: read
       packages: write

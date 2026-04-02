@@ -65,7 +65,7 @@ jobs:
       - name: Build Bootc Target Image
         run: |
           sudo -E bash ./auto-image-builder.sh build \
-          --distro autosd10-sig \
+          --distro autosd10 \
           --build-container ${AIB_BUILD_CONTAINER_IMAGE} \
           --target ${{ matrix.aib_target }} \
           --define-file aib/vars.yml \

@@ -10,39 +10,36 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
+
 name: esdv
+
+image:
+  hostname: esdv-main-compute
+  selinux_booleans:
+    domain_can_mmap_files: true
+
+auth:
+  groups:
+    guest:
+      gid: 2000
+  sshd_config:
+    PasswordAuthentication: true
+    PermitRootLogin: true
 
 content:
   enable_repos:
     - devel
-  repos: []
   rpms:
-    - openssh-server
-    - podman
-    - hostname
-    - crun
-    - fuse-overlayfs
+    # basic packages
+    - bash
     - dnf
+    - vim
+    - openssh-server
     # bluechi packages
     - bluechi-selinux
     - bluechi-controller
     - bluechi-agent
     - bluechi-ctl
-  container_images:
-    - source: ghcr.io/rust-cross/rust-musl-cross
-      tag: x86_64-musl
-      name: ghcr.io/rust-cross/rust-musl-cross:x86_64-musl
-  systemd:
-    enabled_services:
-      - sshd.service
-      - bluechi-controller.service
-      - bluechi-agent.service
-      - esdv-blueprint-mount.service 
-  make_dirs:
-    - path: /etc/containers/systemd/qm.container.d
-      mode: 0755
-      parents: true
-      exist_ok: true
   add_files:
     # qm files
     - path: /etc/containers/systemd/qm.container.d/11-bluechi-socket.conf
@@ -52,20 +49,12 @@ content:
       source_path: ../files/etc/bluechi/controller.conf.d/0-main.conf
     - path: /etc/bluechi/agent.conf.d/0-main.conf
       source_path: ../files/etc/bluechi/agent.conf.d/0-main.conf
-    # esdv-check-blueprint-vol
-    - source_path: ../files/usr/bin/esdv-check-blueprint-vol
-      path: /usr/bin/esdv-check-blueprint-vol
-    # esdv-blueprint-mount.service
-    - source_path: ../files/etc/systemd/system/esdv-blueprint-mount.service
-      path: /etc/systemd/system/esdv-blueprint-mount.service
-    # esdv.network
-    - source_path: ../files/etc/containers/systemd/esdv.network
-      path: /etc/containers/systemd/esdv.network
-  chmod_files:
-    # esdv-check-blueprint-vol
-    - path: /usr/bin/esdv-check-blueprint-vol
-      mode: "0755"
-      recursive: false
+  systemd:
+    enabled_services:
+      - sshd.service
+      - bluechi-controller.service
+      - bluechi-agent.service
+
 qm:
   memory_limit:
     max: infinity
@@ -73,7 +62,6 @@ qm:
   content:
     enable_repos:
       - debug
-    repos: []
     rpms:
       - git
       - bluechi-agent
@@ -84,23 +72,3 @@ qm:
     systemd:
       enabled_services:
         - bluechi-agent
-
-image:
-  hostname: esdv-main-compute
-  selinux_booleans:
-    domain_can_mmap_files: true
-  image_size: 10 GiB
-  partitions:
-    boot:
-      size: 300 MiB
-
-network:
-  static: {}
-
-auth:
-  sshd_config:
-    PasswordAuthentication: true
-    PermitRootLogin: true
-  groups:
-    guest:
-      gid: 2000
