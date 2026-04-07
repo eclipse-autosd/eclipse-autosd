@@ -15,8 +15,13 @@ name: esdv
 
 image:
   hostname: esdv-main-compute
+  sealed: false
   selinux_booleans:
     domain_can_mmap_files: true
+
+# uncomment to see kernel logs
+#kernel:
+#  debug_logging: true
 
 auth:
   groups:

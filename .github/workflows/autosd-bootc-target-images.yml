@@ -21,6 +21,7 @@ on:
       - main
     paths:
       - .github/workflows/autosd-bootc-target-images.yml
+      - aib/
   workflow_dispatch:
 
 jobs:
