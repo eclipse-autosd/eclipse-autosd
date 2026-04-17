@@ -106,6 +106,8 @@ jobs:
           path: _build/outputs/*
   publish-disk-images:
     needs: build-disk-image
+    permissions:
+      contents: write
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     steps:
@@ -124,13 +126,44 @@ jobs:
       - name: Inspect Outputs
         run: |
           tree _build
-      - name: SCP artifacts to download.eclipse.org
-        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1
-        with:
-          host: projects-storage.eclipse.org
-          username: ${{ secrets.SCP_USERNAME }}
-          key: ${{ secrets.SCP_KEY }}
-          passphrase: ${{ secrets.SCP_PASSPHRASE }}
-          source: "_build/outputs/*"
-          target: "/home/data/httpd/download.eclipse.org/autosd/disk-images/"
-          strip_components: 2
+      - name: Create Dev Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create dev \
+          --title "Rolling Builds" \
+          --notes "Rolling builds for development purposes" \
+          --prerelease \
+          || true
+      - name: Publish Disk Images
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          RE='^eclipse-autosd-bootc-(qemu|rpi4)-(x86_64|aarch64)\.(qcow2|img)$'
+          for disk_path in _build/outputs/*; do
+            disk_fname=$(basename "${disk_path}")
+            
+            if [[ ! ${disk_fname} =~ ${RE} ]]; then
+              echo "Skipping ${disk_fname}"
+              continue
+            fi
+
+            xz -T0 -3 ${disk_path}
+            gh release upload dev \
+            "${disk_path}.xz" \
+            --clobber
+          done 
+        
+     # this is not working yet, see: https://gitlab.eclipse.org/eclipsefdn/helpdesk/-/issues/7378   
+     #  - name: SCP artifacts to download.eclipse.org
+     #    uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1
+     #    with:
+     #      host: projects-storage.eclipse.org
+     #      username: ${{ secrets.SCP_USERNAME }}
+     #      key: ${{ secrets.SCP_KEY }}
+     #      passphrase: ${{ secrets.SCP_PASSPHRASE }}
+     #      source: "_build/outputs/*"
+     #      target: "/home/data/httpd/download.eclipse.org/autosd/disk-images/"
+     #      strip_components: 2
