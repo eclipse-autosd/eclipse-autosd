@@ -42,6 +42,8 @@ jobs:
     runs-on: ${{ matrix.runner }}
     env:
       AIB_LOCAL_CONTAINER_STORAGE: ${{ github.workspace }}/_build/containers-storage
+      AIB_VERSION: 1.3.0
+      AIB_DISTRO: autosd10
     steps:
       - uses: actions/checkout@v4
       - name: Install Base Dependencies
@@ -53,15 +55,16 @@ jobs:
       - name: Install AIB container script
         run: |
           wget -O auto-image-builder.sh \
-          https://gitlab.com/CentOS/automotive/src/automotive-image-builder/-/raw/main/auto-image-builder.sh?ref_type=heads
+          https://gitlab.com/CentOS/automotive/src/automotive-image-builder/-/raw/${AIB_VERSION}/auto-image-builder.sh?ref_type=tags
           chmod +x auto-image-builder.sh
       - name: Prepare Build
         run: |
           mkdir -p $PWD/_build/{containers-storage,outputs}
       - name: Build Bootc Builder
         run: |
-          sudo -E bash auto-image-builder.sh build-builder \
-          --distro autosd10 \
+          export AIB_IMAGE=quay.io/centos-sig-automotive/automotive-image-builder:${AIB_VERSION}
+          sudo -E bash auto-image-builder.sh -c ${AIB_IMAGE} build-builder \
+          --distro ${AIB_DISTRO} \
           --oci-archive _build/outputs/eclipse-autosd-builder-${{ matrix.oci_arch }}.oci
       - name: Store Container Builder Image
         uses: actions/upload-artifact@v4
