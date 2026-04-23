@@ -37,6 +37,7 @@ jobs:
 
     runs-on: ${{ matrix.runner }}
     env:
+      AIB_VERSION: 1.3.0
       AIB_BUILD_CONTAINER_IMAGE: ghcr.io/eclipse-autosd/eclipse-autosd-builder:latest
       AIB_LOCAL_CONTAINER_STORAGE: ${{ github.workspace }}/_build/containers-storage
     steps:
@@ -50,7 +51,7 @@ jobs:
       - name: Install AIB container script
         run: |
           wget -O auto-image-builder.sh \
-          https://gitlab.com/CentOS/automotive/src/automotive-image-builder/-/raw/main/auto-image-builder.sh?ref_type=heads
+          https://gitlab.com/CentOS/automotive/src/automotive-image-builder/-/raw/${AIB_VERSION}/auto-image-builder.sh?ref_type=tags
           chmod +x auto-image-builder.sh
       - name: Prepare Build
         run: |
@@ -63,6 +64,8 @@ jobs:
           copy docker://${AIB_BUILD_CONTAINER_IMAGE} containers-storage:${AIB_BUILD_CONTAINER_IMAGE}
       - name: Generate Disk Images
         run: |
+          export AIB_IMAGE=quay.io/centos-sig-automotive/automotive-image-builder:${AIB_VERSION}
+
           IFS=',' read -ra AIB_TARGETS <<< "${{matrix.aib_targets}}"
           for aib_target in "${AIB_TARGETS[@]}"; do
 
@@ -84,7 +87,7 @@ jobs:
             quay.io/containers/skopeo:latest \
             copy docker://${aib_oci_image} oci-archive:///outputs/${aib_oci_archive}
 
-            sudo -E ./auto-image-builder.sh --verbose to-disk-image \
+            sudo -E ./auto-image-builder.sh -c ${AIB_IMAGE} --verbose to-disk-image \
             --build-container ${AIB_BUILD_CONTAINER_IMAGE} \
             --oci-archive \
             _build/outputs/${aib_oci_archive} \
