@@ -1,0 +1,35 @@
+load("@rules_pkg//pkg:pkg.bzl", "pkg_tar")
+load("@rules_oci//oci:defs.bzl", "oci_load", "oci_image")
+
+filegroup(
+    name = "sample_systemd_service",
+    srcs = ["files/sample.service"],
+)
+
+pkg_tar(
+    name = "sample_systemd_service_tar",
+    srcs = [
+        ":sample_systemd_service",
+    ],
+    symlinks = {
+        "/etc/systemd/system/default.target.wants/sample.service": "/etc/systemd/system/sample.service",
+    },
+    package_dir = "/etc/systemd/system",
+)
+
+pkg_tar(
+    name = "sample_tar",
+    srcs = [
+        "//src:sample",
+    ],
+    package_dir = "/usr/bin",
+)
+
+oci_image(
+    name = "sample_image",
+    base = "@eclipse_autosd_qemu",
+    tars = [
+      ":sample_tar",
+      ":sample_systemd_service_tar",
+    ],
+)

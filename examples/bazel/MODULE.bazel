@@ -1,0 +1,40 @@
+module(name = "esdv_autosd_sample", version = "0.0.1")
+
+bazel_dep(name = "os_autosd", version = "1.0.0")
+
+bazel_dep(name = "rules_pkg", version = "1.0.1")
+
+bazel_dep(name = "rules_oci", version = "2.3.1")
+git_override(
+    module_name = "rules_oci",
+    remote = "https://github.com/bazel-contrib/rules_oci.git",
+    tag = "v2.3.1",
+)
+
+
+git_override(
+    module_name = "os_autosd",
+    remote = "https://github.com/eclipse-score/inc_os_autosd",
+    branch = "main",
+)
+
+autosd_10_gcc = use_extension("@os_autosd//toolchain/autosd_10_gcc:extensions.bzl", "autosd_10_gcc_extension")
+autosd_10_gcc.configure(
+    c_flags = ["-fPIC"],
+    cxx_flags = ["-fPIC"],
+)
+
+use_repo(autosd_10_gcc, "autosd_10_gcc_repo")
+
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+oci.pull(
+    name = "eclipse_autosd_qemu",
+    image = "ghcr.io/eclipse-autosd/eclipse-autosd-bootc-qemu",
+    tag = "latest",
+    platforms = ["linux/amd64"],
+)
+use_repo(
+    oci,
+    "eclipse_autosd_qemu",
+)
+

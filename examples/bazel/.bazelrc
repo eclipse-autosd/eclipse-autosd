@@ -1,0 +1,4 @@
+common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/refs/heads/main/
+common --registry=https://bcr.bazel.build
+
+build --extra_toolchains=@autosd_10_gcc_repo//:gcc_toolchain_linux_x86_64
