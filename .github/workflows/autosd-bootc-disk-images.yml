@@ -37,7 +37,7 @@ jobs:
 
     runs-on: ${{ matrix.runner }}
     env:
-      AIB_VERSION: 1.3.0
+      AIB_VERSION: 1.3.2
       AIB_BUILD_CONTAINER_IMAGE: ghcr.io/eclipse-autosd/eclipse-autosd-builder:latest
       AIB_LOCAL_CONTAINER_STORAGE: ${{ github.workspace }}/_build/containers-storage
     steps:
