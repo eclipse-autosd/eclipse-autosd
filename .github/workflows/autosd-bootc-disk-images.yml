@@ -154,16 +154,4 @@ jobs:
             gh release upload dev \
             "${disk_path}.xz" \
             --clobber
-          done 
-        
-     # this is not working yet, see: https://gitlab.eclipse.org/eclipsefdn/helpdesk/-/issues/7378   
-     #  - name: SCP artifacts to download.eclipse.org
-     #    uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1
-     #    with:
-     #      host: projects-storage.eclipse.org
-     #      username: ${{ secrets.SCP_USERNAME }}
-     #      key: ${{ secrets.SCP_KEY }}
-     #      passphrase: ${{ secrets.SCP_PASSPHRASE }}
-     #      source: "_build/outputs/*"
-     #      target: "/home/data/httpd/download.eclipse.org/autosd/disk-images/"
-     #      strip_components: 2
+          done
