@@ -31,15 +31,9 @@ To submit a bug or suggest an enhancement please use [GitHub issues](https://git
 Patches are welcome!
 
 Please submit patches to [github.com/eclipse-autosd/eclipse-autosd](https://github.com/eclipse-autosd/eclipse-autosd).
-More information about the development can be found in [README.developer.md](README.developer.md).
 
 You can read [Get started with GitHub](https://docs.github.com/en/get-started)
 if you are not familiar with the development process to learn more about it.
-
-## Developer resources
-
-Information regarding source code management, builds, coding standards, and
-more can be found in the [README.developer.md](./README.developer.md).
 
 ## Eclipse Contributor Agreement
 
