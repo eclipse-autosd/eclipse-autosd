@@ -13,11 +13,6 @@
 name: "AutoSD: Bootc Disk Images"
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - .github/workflows/autosd-bootc-disk-images.yml
   workflow_dispatch:
 
 jobs:
@@ -33,7 +28,7 @@ jobs:
           - platform: aarch64
             runner: ubuntu-24.04-arm
             oci_arch: arm64
-            aib_targets: qemu,rpi4
+            aib_targets: qemu,rpi4,ebbr
 
     runs-on: ${{ matrix.runner }}
     env:
@@ -141,7 +136,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
-          RE='^eclipse-autosd-bootc-(qemu|rpi4)-(x86_64|aarch64)\.(qcow2|img)$'
+          RE='^eclipse-autosd-bootc-(qemu|rpi4|ebbr)-(x86_64|aarch64)\.(qcow2|img)$'
           for disk_path in _build/outputs/*; do
             disk_fname=$(basename "${disk_path}")
             
