@@ -28,7 +28,7 @@ jobs:
   build-target-image:
     strategy:
       matrix:
-        platform: [qemu-amd64, qemu-arm64, rpi4-arm64]
+        platform: [qemu-amd64, qemu-arm64, rpi4-arm64, ebbr-arm64]
         include:
           - platform: qemu-amd64
             runner: ubuntu-24.04
@@ -42,6 +42,10 @@ jobs:
             runner: ubuntu-24.04-arm
             oci_arch: arm64
             aib_target: rpi4
+          - platform: ebbr-arm64
+            runner: ubuntu-24.04-arm
+            oci_arch: arm64
+            aib_target: ebbr
 
     runs-on: ${{ matrix.runner }}
     env:
@@ -120,9 +124,10 @@ jobs:
 
           podman manifest create eclipse-autosd-bootc-qemu:latest
           podman manifest create eclipse-autosd-bootc-rpi4:latest
+          podman manifest create eclipse-autosd-bootc-ebbr:latest
 
           for oci_file in *.oci; do 
-            if [[ "${oci_file}" =~ eclipse-autosd-bootc-(qemu|rpi4)-(amd64|arm64)\.oci ]]; then
+            if [[ "${oci_file}" =~ eclipse-autosd-bootc-(qemu|rpi4|ebbr)-(amd64|arm64)\.oci ]]; then
               oci_version="${tag_pr:-latest}"
               oci_target="${BASH_REMATCH[1]}"
               oci_arch="${BASH_REMATCH[2]}"
@@ -147,7 +152,7 @@ jobs:
         run: |
           podman images
           
-          aib_targets=("qemu" "rpi4")
+          aib_targets=("qemu" "rpi4" "ebbr")
           for aib_target in ${aib_targets[@]}; do
             manifest_name="eclipse-autosd-bootc-${aib_target}"
             
@@ -163,7 +168,7 @@ jobs:
 
           echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
           
-          aib_targets=("qemu" "rpi4")
+          aib_targets=("qemu" "rpi4" "ebbr")
           for aib_target in ${aib_targets[@]}; do
             podman manifest push --all \
             eclipse-autosd-bootc-${aib_target}:latest \
